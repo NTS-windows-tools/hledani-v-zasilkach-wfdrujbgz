@@ -277,6 +277,16 @@
             return parseD(b.archivedDate) - parseD(a.archivedDate);
         });
         container.innerHTML = "";
+
+        // URL mapy pro sledování
+        const trackingUrlMap = {
+            "Zásilkovna": "https://tracking.packeta.com/cs/XXXXXXXXX",
+            "Balíkovna": "https://www.balikovna.cz/cs/sledovat-balik/-/balik/XXXXXXXXX",
+            "DPD": "https://www.dpdgroup.com/cz/mydpd/my-parcels/incoming?parcelNumber=XXXXXXXXX",
+            "PPL": "https://www.ppl.cz/vyhledat-zasilku?shipmentId=XXXXXXXXX",
+            "Česká pošta": "https://www.postaonline.cz/trackandtrace/-/zasilka/cislo?parcelNumbers=XXXXXXXXX"
+        };
+
         items.forEach(item => {
             const div = document.createElement('div');
             div.className = "shipment-item";
@@ -286,6 +296,13 @@
             const nameDisp = item.recipientType === "other" ? "Jiné: " + (item.recipient || "") : (item.recipient || "");
             const phoneDisp = item.phoneType === "other" ? "Jiné: " + (item.phone || "") : (item.phone || "");
             const deliveryDisp = item.deliveryType + (item.deliveryTarget ? " (" + item.deliveryTarget + ")" : "");
+
+            // LOGIKA PRO ODZKAZ NA SLEDOVÁNÍ
+            let trackingHtml = highlight(item.tracking);
+            if (item.carrier && trackingUrlMap[item.carrier] && item.tracking) {
+                const url = trackingUrlMap[item.carrier].replace("XXXXXXXXX", item.tracking);
+                trackingHtml = `<a href="${url}" target="_blank" style="color: var(--primary-blue); text-decoration: underline;">${highlight(item.tracking)}</a>`;
+            }
 
             div.innerHTML = `
                 <div class="shipment-header" onclick="const d = this.nextElementSibling; d.style.display = d.style.display === 'block' ? 'none' : 'block'">
@@ -302,7 +319,7 @@
                     <span class="info-value">${highlight(item.carrier)}</span>
 
                     <span class="info-label">Číslo zásilky:</span>
-                    <span class="info-value">${highlight(item.tracking)}</span>
+                    <span class="info-value">${trackingHtml}</span>
 
                     <span class="info-label">Příjemce:</span>
                     <span class="info-value">${highlight(nameDisp)}</span>
